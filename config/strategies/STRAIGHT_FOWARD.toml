@@ -1,0 +1,11 @@
+short = 10
+long = 21
+signal = 9
+
+[thresholds]
+down = -0.025
+up = 0.025
+persistence = 1
+[straight_foward]
+downTreshold = 10
+upTreshold = 5
