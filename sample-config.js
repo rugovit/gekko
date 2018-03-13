@@ -53,20 +53,13 @@ config.DEMA = {
 config.STRAIGHT_FOWARD = {
   // EMA weight (α)
   // the higher the weight, the more smooth (and delayed) the line
-  short: 10,
-  long: 21,
-  signal: 9,
-  // the difference between the EMAs (to act as triggers)
-  thresholds: {
-    down: -0.025,
-    up: 0.025,
-    // How many candle intervals should a trend persist
-    // before we consider it real?
-    persistence: 20
-  },
+
   straight_foward:{
      downTreshold:10,
-     upTreshold:5
+     upTreshold:5,
+     short: 10,
+     long: 21,
+     medium: 9,
   }
 };
 // MACD settings:
