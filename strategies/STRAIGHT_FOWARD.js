@@ -16,7 +16,7 @@ var curantCandle;
 var lastCandle;
 
 var method = {};
-
+var  candelNumber;
 // prepare everything our method needs
 method.init = function () {
   // keep state about the current trend
@@ -40,14 +40,20 @@ method.init = function () {
   this.addIndicator('short', 'SMA', this.settings.straight_foward.short)
   this.addIndicator('medium', 'SMA', this.settings.straight_foward.medium)
   this.addIndicator('long', 'SMA', this.settings.straight_foward.long)
+  log.debug("required History", this.requiredHistory);
+  candelNumber=-this.requiredHistory;
 
 }
 
 // what happens on every new candle?
 method.update = function (candle) {
   log.debug('////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////');
+  log.debug('////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////');
+  log.debug('CANDEL NUMBER',candelNumber);
+  log.debug('////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////');
+  log.debug('////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////');
   log.debug('Update!!!!');
-  log.debug( "required History",this.requiredHistory);
+  candelNumber++;
   lastCandle = extend(curantCandle);
   curantCandle = candle;
 
@@ -68,7 +74,7 @@ method.update = function (candle) {
 // for debugging purposes: log the last calculated
 // EMAs and diff.
 method.log = function () {
-  log.debug( "required History",this.requiredHistory);
+
 }
 
 method.check = function () {
@@ -92,46 +98,40 @@ method.check = function () {
 
 
   //if (lastCandle.close < curantCandle.close) {  ////up
-  log.debug("last short",lastShort );
-  log.debug("current short",currentShort );
-  if (lastShort  < currentShort) {  ////up
+  log.debug("last short", lastShort);
+  log.debug("current short", currentShort);
+  var diff = currentShort - lastShort;
+  diff=diff/(lastShort/1000);
+  log.debug("diff", diff);
+  if (diff > this.settings.straight_foward.upTreshold) {  ////up
     // new trend detected
-
     this.trend.durationUp++;
+    log.debug('In uptrend since',this.trend.durationUp, 'candle(s)');
+    if (this.trend.direction !== 'up') {
+      // reset the state for the new trend
+      this.trend = {
+        durationUp: 0,
+        durationDown: 0,
+        persisted: false,
+        direction: 'up',
+        adviced: false
+      };
 
-    log.debug('In uptrend since', this.trend.duration, 'candle(s)');
-
-    if (this.trend.durationUp > this.settings.straight_foward.upTreshold) {
-
-      if (this.trend.direction !== 'up') {
-        // reset the state for the new trend
-        this.trend = {
-          durationUp: 0,
-          durationDown: 0,
-          persisted: false,
-          direction: 'up',
-          adviced: false
-        };
-
-      }
-
-      this.trend.persisted = true;
     }
-
+    this.trend.persisted = true;
     if (this.trend.persisted && !this.trend.adviced) {
+      this.trend.direction = 'up'
       this.trend.adviced = true;
       this.advice('long');
+      log.error('Bought!!!');
     } else
       this.advice();
   }
-  else {
+  else if(diff<-this.settings.straight_foward.downTreshold) {
     // new trend detected
     this.trend.durationDown++;
-
-    log.debug('In downtrend since', this.trend.duration, 'candle(s)');
-
-    if (this.trend.durationDown > this.settings.straight_foward.downTreshold) {
-      if (this.trend.direction !== 'down')
+    log.debug('In downtrend since',  this.trend.durationDown, 'candle(s)');
+      if (this.trend.direction !== 'down'&&this.trend.direction === 'up')
       // reset the state for the new trend
         this.trend = {
           durationUp: 0,
@@ -141,12 +141,10 @@ method.check = function () {
           adviced: false
         };
       this.trend.persisted = true;
-
-    }
-
     if (this.trend.persisted && !this.trend.adviced) {
       this.trend.adviced = true;
       this.advice('short');
+      log.error('Sold!!!');
     } else
       this.advice();
   }
